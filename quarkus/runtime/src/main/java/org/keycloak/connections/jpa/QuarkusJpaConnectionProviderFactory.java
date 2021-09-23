@@ -155,6 +155,17 @@ public final class QuarkusJpaConnectionProviderFactory implements JpaConnectionP
 
         if (initSchema || ExportImportConfig.ACTION_EXPORT.equals(ExportImportConfig.getAction())) {
             runJobInTransaction(factory, this::initSchemaOrExport);
+        } else if ( ExportImportConfig.ACTION_IMPORT.equals(ExportImportConfig.getAction()) ) {
+            KeycloakSession import_session = factory.create();
+            try {
+                ExportImportManager exportImportManager = new ExportImportManager(import_session);
+                if (exportImportManager.isRunImport()) {
+                    exportImportManager.runImport();
+                    Quarkus.asyncExit();
+                }
+            } finally {
+                import_session.close();
+            }
         }
     }
 
